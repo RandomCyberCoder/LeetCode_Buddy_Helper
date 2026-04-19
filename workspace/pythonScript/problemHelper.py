@@ -1,14 +1,23 @@
 import pandas as pd
 import sys
 import random
+import math
+import datetime
 
+def weight_function(days_since_last_solved):
+    MAX_VALUE = 7
+    GROWTH_RATE = 0.2
+    MIDPOINT = 20
 
-def choose_problem(problems):
+    #s-curve
+    return MAX_VALUE / (1 + math.exp(GROWTH_RATE * (-days_since_last_solved + MIDPOINT)))
+
+def choose_problem(problems, weights):
     if not problems:
         print("No problems found for the specified difficulty level.")
         return None
     
-    print(random.choices(problems, k=1)[0])
+    print(random.choices(problems, weights=weights, k=1)[0])
 
 
 def main():
@@ -16,6 +25,7 @@ def main():
     names = set()
     urls = set()
     problems = []
+    weights = []
     difficulty = sys.argv
     difficulty = difficulty[1] if len(difficulty) > 1 else None
     difficulty = difficulty.lower() if difficulty else None
@@ -36,8 +46,12 @@ def main():
             'difficulty': row['difficulty'],
             'url': row['url']
         })
+        days_delta = datetime.datetime.now() - datetime.datetime.strptime(row['date_solved'], '%m/%d/%Y')
+        #get days and make sure it's not negative
+        days_delta = max(days_delta.days, 0)
+        weights.append(weight_function(days_delta))
 
-    choose_problem(problems)
+    choose_problem(problems, weights)
 
         
 if __name__ == "__main__":
