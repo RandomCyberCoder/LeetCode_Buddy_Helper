@@ -17,7 +17,7 @@ def choose_problem(problems, weights):
         print("No problems found for the specified difficulty level.")
         return None
     
-    print(random.choices(problems, weights=weights, k=1)[0])
+    return random.choices(range(len(problems)), weights=weights, k=1)[0]
 
 
 def main():
@@ -44,15 +44,20 @@ def main():
         problems.append({
             'name': row['name'],
             'difficulty': row['difficulty'],
-            'url': row['url']
+            'url': row['url'],
+            'idx': index
         })
-        days_delta = datetime.datetime.now() - datetime.datetime.strptime(row['date_solved'], '%m/%d/%Y')
+        days_delta = datetime.datetime.now() - datetime.datetime.strptime(row['date_solved'], '%Y-%m-%d')
         #get days and make sure it's not negative
         days_delta = max(days_delta.days, 0)
         weights.append(weight_function(days_delta))
 
-    choose_problem(problems, weights)
-
+    choice = problems[choose_problem(problems, weights)]
+    #update the date_solved to today for the chosen problem
+    df.at[choice["idx"], 'date_solved'] = datetime.datetime.now().strftime('%Y-%m-%d')
+    df.to_csv('../data/problems.csv', index=False)
+    print(choice)
+    
         
 if __name__ == "__main__":
     main()
